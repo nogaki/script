@@ -1,0 +1,17 @@
+set -eu
+
+if ! type git > /dev/null; then
+  echo "Error: git not found"
+  exit 1
+fi
+
+git clone git@github.com:nogaki/dotfiles.git "$HOME/.dotfiles"
+cd "$HOME/.dotfiles"
+
+source $HOME/.dotfiles/link.sh
+#source $HOME/.bashrc
+#echo $PATH
+
+source $HOME/.dotfiles/setup.sh
+#source $HOME/.bashrc
+#echo $PATH
