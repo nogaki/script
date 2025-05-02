@@ -5,13 +5,17 @@ if ! type git > /dev/null; then
   exit 1
 fi
 
-git clone git@github.com:nogaki/dotfiles.git "$HOME/.dotfiles"
+# Git
+wget https://github.com/git-ecosystem/git-credential-manager/releases/download/v2.6.1/gcm-linux_amd64.2.6.1.deb
+sudo dpkg -i gcm-linux_amd64.2.6.1.deb
+rm -f gcm-linux_amd64.2.6.1.deb
+git-credential-manager configure
+git config --global credential.credentialStore cache
+
+#git clone git@github.com:nogaki/dotfiles.git "$HOME/.dotfiles"
+git clone https://github.com/nogaki/dotfiles.git "$HOME/.dotfiles"
 cd "$HOME/.dotfiles"
 
 source $HOME/.dotfiles/link.sh
-#source $HOME/.bashrc
-#echo $PATH
 
 source $HOME/.dotfiles/setup.sh
-#source $HOME/.bashrc
-#echo $PATH
