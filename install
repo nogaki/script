@@ -1,21 +1,49 @@
-set -eu
+#!/bin/bash
 
-if ! type git > /dev/null; then
+set -euo pipefail
+
+if ! command -v git >/dev/null 2>&1; then
   echo "Error: git not found"
   exit 1
 fi
 
-# Git
-wget https://github.com/git-ecosystem/git-credential-manager/releases/download/v2.6.1/gcm-linux_amd64.2.6.1.deb
-sudo dpkg -i gcm-linux_amd64.2.6.1.deb
-rm -f gcm-linux_amd64.2.6.1.deb
-git-credential-manager configure
+install_git_credential_manager() {
+  if command -v git-credential-manager >/dev/null 2>&1; then
+    echo "Git Credential Manager already installed."
+    return
+  fi
+
+  echo "Installing Git Credential Manager..."
+  # Declare a function-scoped temp file path for the installer binary
+  local installer
+  installer=$(mktemp)
+  wget -O "$installer" "https://github.com/git-ecosystem/git-credential-manager/releases/download/v2.6.1/gcm-linux_amd64.2.6.1.deb"
+  sudo dpkg -i "$installer"
+  rm -f "$installer"
+  git-credential-manager configure
+}
+
+install_git_credential_manager
 git config --global credential.credentialStore cache
 
-#git clone git@github.com:nogaki/dotfiles.git "$HOME/.dotfiles"
-git clone https://github.com/nogaki/dotfiles.git "$HOME/.dotfiles"
-cd "$HOME/.dotfiles"
+DOTFILES_DIR="$HOME/.dotfiles"
 
-source $HOME/.dotfiles/link.sh
+if [ -d "$DOTFILES_DIR/.git" ]; then
+  echo "Updating existing dotfiles repository..."
+  git -C "$DOTFILES_DIR" pull --rebase
+else
+  echo "Cloning dotfiles repository..."
+  git clone https://github.com/nogaki/dotfiles.git "$DOTFILES_DIR"
+fi
 
-source $HOME/.dotfiles/setup.sh
+cd "$DOTFILES_DIR"
+
+if [ -f "$DOTFILES_DIR/link.sh" ]; then
+  # shellcheck source=/dev/null
+  source "$DOTFILES_DIR/link.sh"
+fi
+
+if [ -f "$DOTFILES_DIR/setup.sh" ]; then
+  # shellcheck source=/dev/null
+  source "$DOTFILES_DIR/setup.sh"
+fi
